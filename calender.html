@@ -1,0 +1,319 @@
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<div class="calender">
+    <div class="cal-head">
+        <h1>Calender</h1>
+        <h4><label class="lbl_date"></label></h4>
+        <hr>
+    </div>
+    <div class="mon-year">
+        <div class="month">
+            <button class="left" onclick="fn_left()"><i class="las la-angle-left"></i></button>
+            <label for="" class="lbl_month"></label>
+            <button class="right" onclick="fn_right()"><i class="las la-angle-right"></i></button>
+        </div>
+        <div class="year">
+            <button class="up" onclick="fn_up()"><i class="las la-angle-up"></i></button>
+            <label for="" class="lbl_year"></label>
+            <button class="down" onclick="fn_down()"><i class="las la-angle-down"></i></button>
+        </div>
+    </div>
+    <div class="cal-body">       
+        <div class="cal-event inactive">
+            <div class="close-save">      
+                <div class="close"><button class="event-close" onclick="fn_closeEvent()"><i class="las la-times-circle"></i></button></div>
+                <div class="save"><button class="event-save" onclick="fn_saveEvent()">Add</button></div>
+            </div>
+            <div class="event-head"> 
+                <h5>New Event</h5>
+                <p><label for="" class="event-date"></label></p>
+            </div>
+            <div class="event-body">
+                <div class="title-desc">
+                    <div class="event-title">
+                        <h6>Event Title</h6>
+                        <input type="text" class="title">
+                    </div>
+                    <div class="event-description">
+                        <h6>Description</h6>
+                        <input type="text" class="description">
+                    </div>
+                </div>
+                <div class="event-time">
+                    <div class="starting-time invalid">
+                        <h6>Starting Time</h6>
+                        <input type="time" class="s-time">
+                    </div>
+                    <div class="ending-time invalid">
+                        <h6>Ending Time</h6>
+                        <input type="time" class="e-time">
+                    </div>
+                    <div class="all-day">
+                        <h6><input type="checkbox" id="All-Day" name="All-Day" class="All-Day" onclick="fn_validate()" checked/>All-Day</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <table class="cal-table table">
+        </table>
+    </div>
+</div>
+<style>
+    h1, h4 {
+        text-align: center;
+        color: black;
+    }
+    label.lbl_date {
+        font-size: 24px;
+    }
+    .mon-year {
+        display: flex;
+        justify-content:space-between;
+    }
+    .lbl_month, .lbl_year {
+        font-weight: bold;
+        font-size: 20px;
+        margin: 10px;
+    }
+    .las {
+        font-weight: bolder;
+        font-size: x-large;
+    }
+    .la-plus-circle {
+        font-size: xx-large;
+    }
+    table th, table td {
+        border: 1px solid lightgray;
+        font-size: 20px;
+        max-width: 30px;
+        min-width: 30px;
+        font-family: cursive;
+        color: #414c68;
+    }
+    table th {
+        text-align: center;
+        padding: 0;
+    }
+    table td {
+        height: 130px;
+        text-align: right;
+        align-items: left;
+    }
+    .Sunday {
+        background-color: rgb(230, 230, 230) ;
+        color: red;
+    }
+    button.events {
+        margin-right: 90px;
+        margin-bottom: 50px;
+        color: lightgray;
+    }
+    table td:hover {
+        color: rgba(0, 0, 0, 0.5);
+        background-color: gray;
+    }
+    button.events:hover {
+        display: initial;
+        color:  rgba(0, 0, 0, 0.5);
+    }
+    .box0 {
+        background-color: rgb(230, 230, 230);
+        color: red;
+    }
+    .currentDay {
+        background-color: darkgrey;
+    }
+    .cal-event.inactive{
+        display: none;
+    }
+    .cal-event {
+        position: fixed;
+        background-color: lightgray;
+        border-radius: 20px;
+        left: 410px;
+        top: 200px;
+        width: 550px;
+        align-items: center;
+        height: 250px;
+        border: 1px solid #414c68;
+        padding: 10px;
+        backdrop-filter: blur(100px);
+    }
+    .cal-body {
+        position: relative;
+    }
+    h5, p {
+        margin-top: -5px;
+        font-weight: bold;
+        text-align: center;
+    }
+    .close-save {
+        justify-content: space-between;
+        display: flex;
+        text-align: center;
+    }
+    .event-close, .event-save {
+        color: red;
+        font-weight: bold;
+    }
+    .title-desc, .event-time {
+        display: flex;
+        justify-content: center;
+    }
+    .event-body {
+        align-items: center;
+    }
+    input, h6, .all-day {
+        margin: 5px;
+    }
+    .all-day {
+        margin-top: 20px;
+    }
+    .starting-time.invalid, .ending-time.invalid {
+        display: none;
+    }
+    .starting-time, .ending-time {
+        position: relative;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        fn_900_date();
+        fn_generateTable();
+    });
+
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const no_days = {'January':31, 'February':28, 'March':31, 'April':30, 'May':31, 'June':30, 'July':31, 'August':31, 'September':30, 'October':31, 'November':30, 'December':31}
+    const date = new Date();
+
+    let day = date.getDate();
+    var month = date.getMonth();
+    var year = date.getFullYear();
+    let days = date.getDay();
+
+    let currentDate = `${day} ${months[month]}, ${year}`;
+
+    function fn_900_date() {
+        $('.lbl_date').html(currentDate);
+        $(".lbl_month").html(months[month]);
+        $(".lbl_year").html(year);
+    }
+
+    function fn_left() {
+        if (month==0) {
+            month=12;
+            fn_down();
+        }
+        month--;
+        var mon = months[month];
+        $(".lbl_month").html(months[month]);
+        fn_generateTable();
+    }
+    function fn_right() {
+        if (month==11) {
+            month=(-1);
+            fn_up();
+        }
+        month++;
+        var mon = months[month];
+        $(".lbl_month").html(months[month]);
+        fn_generateTable();
+    }
+    function fn_down() {
+        year--;
+        $(".lbl_year").html(year);
+        fn_generateTable();
+    }
+    function fn_up() {
+        year++;
+        $(".lbl_year").html(year);
+        fn_generateTable();
+    }
+
+    const cur_date = new Date();
+    let cur_day = date.getDate();
+    var cur_month = date.getMonth();
+    var cur_year = date.getFullYear();
+
+    function fn_generateTable(){
+        col = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thurday", "Friday", "Saturday"]
+        if (year%4==0) {
+            no_days['February'] = 29;
+        } else {
+            no_days['February'] = 28;
+        }
+        let d = new Date(`"${year}/${month+1}/01"`);
+        dayno = d.getDay();
+        let tblBody = "", tblHead = "", tblContent = "";
+        tblHead = "<tr>";
+        for (i=0; i < 7; i++) {
+            if (i==0) {
+                $("table th").addClass("Sunday");
+            }
+            tblHead += `<th class = "${col[i]}">`+ col[i] + "</th>";
+        }
+        tblHead += "</tr>";
+        
+        let num = 0;
+        tblBody = "<tr>";
+        for (i=0; i < dayno; i++) {
+            tblBody += `<td class="box${i}"></td>`;
+        }
+        for (i=dayno; i < 7; i++) {
+            num++;
+            let event_date = `${num} ${months[month]}, ${year}`;
+            $(".event-date").html(event_date);
+            tblBody += `<td class="cells box${i} cell${num}"><button class='events event${num}' onclick='fn_addEvent()'><i class='las la-plus-circle'></i></button>`+num+"</td>";
+            if (num == cur_day && month == cur_month && year == cur_year) {
+                $(`.cell${num}`).addClass("currentDay");
+            }
+        }
+        tblBody += "</tr>";
+        for (i=1; i<6; i++) {
+            tblBody += `"<tr class="row${i+1}">"`;
+            for (j=0; j<7; j++) {
+                num++;
+                let event_date = `${num} ${months[month]}, ${year}`;
+                $(".event-date").html(event_date);
+                tblBody += `<td class="cells box${j} cell${num}"><button class='events event${num}' onclick='fn_addEvent()'><i class='las la-plus-circle'></i></button>` + num + `<label for ="" class="lbl${num}"></label></td>`;
+                if (num == cur_day && month == cur_month && year == cur_year) {
+                    $(`.cell${num}`).addClass("currentDay");
+                }
+                if (num==no_days[months[month]]) {
+                    break;
+                }
+            }
+            tblBody += "</tr>";
+            if (num==no_days[months[month]]) {
+                break;
+            }
+        }
+
+        tblContent = tblHead + tblBody;
+        $('.cal-table').html(tblContent);
+    }
+
+    function fn_addEvent() {
+        $(".cal-event").removeClass("inactive");
+    }  
+    function fn_closeEvent(){
+        $(".cal-event").addClass("inactive");
+    }
+    function fn_saveEvent() {
+        /* let in_title = $(".title").val();
+        $(`.lbl${num}`).html(in_title); */
+        fn_closeEvent();
+    }
+
+    function fn_validate() {
+        let All_Day = $(".All-Day").val();
+        if (All_Day.checked == 1) {
+            $(".starting-time").addClass("invalid");
+            $(".ending-time").addClass("invalid");
+        } else {
+            $(".starting-time").removeClass("invalid");
+            $(".ending-time").removeClass("invalid");
+        }
+    }
+</script>
