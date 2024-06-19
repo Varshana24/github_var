@@ -29,15 +29,27 @@
                 <h6>Update Date</h6>
                 <label for="" class="updatedate"></label>
             </div>
-        </div>
-        <div class="rate-bar">
             <div class="Rate">
                 <h6>Rate</h6>
                 <label for="" class="rate"></label>
             </div>
-            <div class="Barcode">
-                <h6>Barcode</h6>
-                <label for="" class="barcode"></label>
+        </div>
+        <div class="unit-brand-cat">
+            <div class="Unit">
+                <h6>Unit</h6>
+                <label for="" class="unit"></label>
+            </div>
+            <div class="Brand">
+                <h6>Brand</h6>
+                <label for="" class="brand"></label>
+            </div>
+            <div class="Category">
+                <h6>Category</h6>
+                <label for="" class="category"></label>
+            </div>
+            <div class="Sub-Category">
+                <h6>Sub-Category</h6>
+                <label for="" class="sub-category"></label>
             </div>
         </div>
     </div>
@@ -50,13 +62,15 @@
 <style>
     h2 {
         text-align: center;
-        color: black;
+        color: #414c68;
     }
     table th, table td {
         text-align: center;
+        color: #414c68;
     }
     table th {
-        background-color: lightgray;
+        background-color: #414c68;
+        color: white;
     }
     .table {
         margin-top: 30px;
@@ -69,43 +83,42 @@
     }
     .StockInfo {
         position: fixed;
-        background-color: rgb(245,245,245);
-        border-radius: 20px;
+        /*background-color:  rgb(250, 250, 250);*/
+        background-color: lightgray;
+        border-radius: 10px;
         left: 350px;
-        top: 100px;
-        max-width: 600px;
+        top: 150px;
+        max-width: 800px;
         align-items: center;
         max-height: 800px;
         border: 1px solid #414c68;
         padding: 10px;
         backdrop-filter: blur(100px);
+        overflow-y: auto;
     }
     .item-stock-body {
         position: relative;
     }
-    .code-name-desc, .Dates, .rate-bar {
+    .code-name-desc, .Dates, .unit-brand-cat {
         display: flex;
         justify-content: center;
     }
     h5 {
-        color: black;
+        color: #414c68;
         margin-top: 20px;
         margin-left: 50px;
         margin-right: 50px;
     } 
     h6 {
-        color: black;
+        color: #414c68;
         margin-top: 40px;
-        margin-left: 80px;
-        margin-right: 80px;
-    }
-    label.code, label.name, label.description {
         margin-left: 50px;
         margin-right: 50px;
     }
     label {
-        margin-left: 80px;
-        margin-right: 80px;
+        margin-left: 50px;
+        margin-right: 50px;
+        color: #414c68;
     }
 </style>
 <script>
@@ -127,7 +140,7 @@
                     for (i = 0; i < N_tblCols; i++) {
                         tblHead += "<th>" + RMatrixColName(d, i) + "</th>";
                     }
-                    tblHead += '<th>Stock Info</th>';
+                    // tblHead += '<th>Stock Info</th>';
                     tblHead += "</tr>";
 
                     for (i = 0; i < N_tblRows; i++) {
@@ -135,7 +148,7 @@
                         for (j = 0; j < N_tblCols; j++) {
                             tblBody += '<td>' + RMatrix(d, i, j) + '</td>';
                         }
-                        tblBody += `<td><button class="details code${i}" onclick="fn_StockInfo(10451)"><i class="las la-plus-circle"></i></button></td>`;
+                        // tblBody += `<td><button class="details code${i}" onclick="fn_StockInfo()"><i class="las la-plus-circle"></i></button></td>`;
                         tblBody += '</tr>'
                     }
                     tblContent = tblHead + tblBody;
@@ -147,9 +160,9 @@
         });
     }
 
-    function fn_StockInfo(Code) {
+    function fn_StockInfo(EntityID) {
         $(".StockInfo").removeClass("inactive");
-        let params = "";
+        let params = [{ Name: "ENTITYID", Value: EntityID + '' }];
         GetCustomQueryData($MS$, "8f954bea-e12c-44b8-83d3-4d60771da23b", params, function (result, status, Err) {
             if (status == 200) {
                 if (result != "") {
@@ -159,11 +172,9 @@
                     let No_tblRows = RMatrixRowCount(d1);
 
                     for (i = 0; i < No_tblRows; i++) {
-                        if (RMatrix(d1, i, 0) == Code) {
                             for (j = 0; j < No_tblCols; j++) {
                                 tbl_stockinfo.push(RMatrix(d1, i, j));
                             }
-                        }
                     }
                     $('.code').html(tbl_stockinfo[0]);
                     $('.name').html(tbl_stockinfo[1]);
@@ -171,7 +182,10 @@
                     $('.createdate').html(tbl_stockinfo[3]);
                     $('.updatedate').html(tbl_stockinfo[4]);
                     $('.rate').html(tbl_stockinfo[5]);
-                    $('.barcode').html(tbl_stockinfo[6]);
+                    $('.unit').html(tbl_stockinfo[6]);
+                    $('.brand').html(tbl_stockinfo[7]);
+                    $('.category').html(tbl_stockinfo[8]);
+                    $('.sub-category').html(tbl_stockinfo[9]); 
                 }
             }
         });
@@ -181,5 +195,6 @@
         $(".StockInfo").addClass("inactive");
     }
 
-    /* SELECT code, name, stock from ItblMaster_StockItems a inner join ItemStockWithCost s on a.EntityId = s.ItID FOR JSON PATH, include_null_values */
+    /* SELECT EC.CompanyName, IT.Code, IT.Name, STK.Stock, '<button onclick="fn_StockInfo(' + convert(varchar, IT.EntityID) + ')"><i class="las la-plus-circle"></i></button>' as Info FROM ItemStockWithCost STK INNER JOIN tblMaster_StockItems IT ON STK.ItID=IT.EntityID inner join ErpCompanies EC on STK.BranchID=EC.Erp_CompanyID FOR JSON PATH, INCLUDE_NULL_VALUES
+    SELECT Code, Name, Description, CreateDate, UpdateDate, Rate, UnitName, BrandName, CategoryName, SubCategoryName FROM tblMaster_StockItems WHERE EntityID=$ENTITYID$ FOR JSON PATH, INCLUDE_NULL_VALUES */
 </script>
