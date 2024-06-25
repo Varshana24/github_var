@@ -1,0 +1,100 @@
+<div class="item-stock">
+    <div class="item-stock-head">
+        <h2>Item Stock</h2>
+    </div>
+    <div class="item-stock-body">
+        <div class="item-stock-table">
+            <table class="item-table table">
+
+            </table>
+        </div>
+    </div>
+</div>
+<style>
+    h2 {
+        text-align: center;
+        color: #414c68;
+        margin-bottom: 20px;
+    }
+    table th {
+        background-color: #414c68;
+        color: white;
+    }
+    table td {
+        color: #414c68;
+    }
+    table {
+        width: fit-content;
+    }
+</style>
+<script>
+    $(document).ready (function() {
+        fn_loadHead();
+    });
+
+    let tblContent = "";
+    function fn_loadHead() {
+        let Params = "";
+        GetCustomQueryData($MS$, "8879a632-32df-49c9-a9cd-3563d311d761", Params, function (result, status, Err) {
+            $(".item-table").html('');
+            if (status == 200) {
+                if (result != "") {
+                    let d = result["0"]["CompBranches"];
+                    $(".item-table").data('itmrowdt', result["0"]["ItemRow"]);
+                    let tblHead = "";
+                    tblHead += "<thead><tr>";
+                    tblHead += '<th>S.No.</th>';
+                    tblHead += '<th>Item Name</th>' + d;
+                    tblHead += "</tr></thead>";
+
+                    $('.item-table').html(tblHead);
+                    fn_loadBody();
+                }
+            } else {
+                    $(".item-table").html('No data found!');
+                }
+        });
+    }
+
+    function fn_loadBody() {
+        let params = "";
+        GetCustomQueryData($MS$, "3f73324d-6bf3-4c55-b48a-05656842b00d", params, function (result, status, Err) {
+        if (status == 200) {
+            if (result != "") {
+                let d1 = result;
+                let No_tblRows = RMatrixRowCount(d1);
+                let No_tblCols = RMatrixColCount(d1);
+                let cnt = 0;
+                let tblBody = "";
+                for (i = 0; i < No_tblRows; i++) {
+                    tblBody += '<tr>';
+                    cnt++;
+                    tblBody += '<td>' + cnt + '</td>';
+                    tblBody += '<td class="itmrow" eid='+ RMatrix(d1, i, 0) +'>' + RMatrix(d1, i, 1) + '</td>';
+                    tblBody += $(".item-table").data('itmrowdt');
+                    tblBody += '</tr>';
+                }
+                $('.item-table').append(tblBody);
+                fn_compStock();
+            }
+        } else {
+                $(".item-table").html('No data found!');
+            }
+        });
+    } 
+
+    function fn_compStock() {
+        let param = "";
+        GetCustomQueryData($MS$, "7f72ba84-8a3b-4648-a8f1-ad9a704f09f4", param, function (result, status, Err) {
+        if (status == 200) {
+            if (result != "") {
+                d2 = result;
+                for (i = 0; i < d2.length; i++) {
+                    $('[eid ="'+ d2[i].ItId +'"]').closest('tr').find('[cid = "' + d2[i].BranchId + '"]').html(d2[i].Stock)
+                }
+            }
+        }
+        });
+    }
+    /* SELECT STRING_AGG(CONCAT('<th>', STK.Stock, '</th>'), '') WITHIN GROUP (ORDER BY STK.ItId) AS StockBranches FROM ItemStockWithCost STK FOR JSON PATH, INCLUDE_NULL_VALUES; */
+</script>
